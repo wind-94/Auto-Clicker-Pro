@@ -31,16 +31,22 @@ def _find_tesseract():
 TESSERACT_PATH = _find_tesseract()
 OCR_CONFIG  = "--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789"
 
-# Determine base directory whether running as script or .exe
+# --- DIRECTORY CONFIGURATION ---
 if getattr(sys, 'frozen', False):
-    BASE_DIR = sys._MEIPASS
+    # ASSETS: The temporary folder where logo.ico is unpacked
+    ASSET_DIR = sys._MEIPASS 
+    # DATA: The actual folder on the user's computer where the .exe is sitting
+    DATA_DIR = os.path.dirname(sys.executable) 
 else:
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    # When running normally as a script
+    ASSET_DIR = os.path.dirname(os.path.abspath(__file__))
+    DATA_DIR = ASSET_DIR
 
-# File paths for the encrypted data and the hidden key
-CONFIG_PATH = os.path.join(BASE_DIR, "bot_config.enc")
-KEY_PATH = os.path.join(BASE_DIR, ".secret_key")
-ICON_PATH = os.path.join(BASE_DIR, "logo.ico")
+# --- FILE PATHS ---
+# Notice how we separate them! Configs go to DATA_DIR, Icons go to ASSET_DIR
+CONFIG_PATH = os.path.join(DATA_DIR, "bot_config.enc")
+KEY_PATH = os.path.join(DATA_DIR, ".secret_key")
+ICON_PATH = os.path.join(ASSET_DIR, "logo.ico")
 
 def _get_cipher():
     """Retrieves or generates the AES encryption key securely."""

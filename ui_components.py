@@ -31,7 +31,7 @@ class Header(QWidget):
         left_spacer.setFixedSize(32, 28)
         lay.addWidget(left_spacer); lay.addStretch()
 
-        self.t = QLabel("Auto-Clicker Pro")
+        self.t = QLabel("Auto Clicker Pro")
         self.t.setStyleSheet("font-size:16px; font-weight:bold; color:#89B4FA; background:transparent; border:none;")
         self.t.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lay.addWidget(self.t); lay.addStretch()

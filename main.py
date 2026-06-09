@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-import sys, re, time, threading, datetime
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QStackedWidget
+import sys, re, time, threading, datetime, multiprocessing, ctypes, os
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QStackedWidget, QSystemTrayIcon
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QFont, QIcon
 import pyautogui, pytesseract
 from PIL import Image, ImageOps
-from plyer import notification
 import winsound
 
 # --- Local Component Imports ---
@@ -23,6 +22,7 @@ class App(QWidget):
     start_signal = pyqtSignal()
     stop_signal = pyqtSignal()
     update_channel_signal = pyqtSignal(str) # Listens for !setchannel
+    notify_signal = pyqtSignal(str, str)
 
     def __init__(self):
         super().__init__()
@@ -40,6 +40,19 @@ class App(QWidget):
         self._build()
         self._wire()
         self._boot_listener()
+        self.notify_signal.connect(self._show_notification)
+        self._setup_tray()
+
+    def _setup_tray(self):
+        self.tray_icon = QSystemTrayIcon(self)
+        import os
+        if os.path.exists(ICON_PATH):
+            self.tray_icon.setIcon(QIcon(ICON_PATH))
+        self.tray_icon.show()
+
+    def _show_notification(self, title, message):
+        if self.tray_icon.isVisible():
+            self.tray_icon.showMessage(title, message, QSystemTrayIcon.MessageIcon.Information, 3000)
 
     def _build(self):
         root = QVBoxLayout(self)
@@ -186,9 +199,12 @@ class App(QWidget):
                     if val > self.tgt:
                         pyautogui.click(*self.click_pos)
                         winsound.MessageBeep(winsound.MB_ICONASTERISK)
-                        notification.notify(title="Auto-Clicker Triggered!",
-                                            message=f"Value {val} > {self.tgt}",
-                                            app_name="Auto-Clicker Pro", timeout=3)
+
+                        # --- 1. SEND NATIVE WINDOWS NOTIFICATION ---
+                        # This safely tells the main UI to pop the message
+                        self.notify_signal.emit("Auto-Clicker Triggered!", f"Value {val} > {self.tgt}")
+
+                        # --- 2. SEND DISCORD MESSAGE ---
                         url = self.cfg.get("webhook_url","")
                         if url:
                             try:
@@ -204,9 +220,24 @@ class App(QWidget):
                 print(f"[BOT] Error: {ex}"); time.sleep(self.ivl)
 
 if __name__ == "__main__":
+    # --- CRITICAL FIX: Stops PyInstaller from spawning infinite background loops ---
+    multiprocessing.freeze_support() 
+    
+    # --- TASKBAR ICON FIX: Forces Windows to use your custom logo ---
+    try:
+        myappid = 'Auto Clicker Pro' 
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    except Exception:
+        pass
+
     app = QApplication(sys.argv)
     app.setStyle("Fusion") 
     app.setStyleSheet(STYLE)
     app.setFont(QFont("Segoe UI", 10))
+    
+    # Make sure the QApplication itself is loading the icon from your config
+    if os.path.exists(ICON_PATH):
+        app.setWindowIcon(QIcon(ICON_PATH))
+        
     w = App(); w.show()
     sys.exit(app.exec())
