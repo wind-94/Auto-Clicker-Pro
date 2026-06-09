@@ -1,4 +1,3 @@
-
 # Auto Clicker Pro
 
 This is an **Auto Clicker Bot🤖** that clicks the screen when the threshold is reached. This bot uses **Tesseract OCR** **[**Optical Character Recognition**]** for reading or capturing the screen🖥️.
@@ -6,6 +5,9 @@ This is an **Auto Clicker Bot🤖** that clicks the screen when the threshold is
 This bot can send Notifications🔔 directly into a Discord Server using webhooks. The notifications are sent when the bot gets triggered.
 
 The bot can be **Controlled Remotely🎮 using Discord Bot via Slash Commands.** We can also get info about the bot states using commands.
+
+Installation Guide ➡️ [Install Guide](#installation)
+Discord Configure Guide ➡️ [Discord Guide](DISCORD_CONFIGS.md)
 
 
 ## Features
